@@ -18,11 +18,10 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        System.out.println("DEBUG: Login attempt for: " + email);
 
-        System.out.println("DEBUG: Login attempt for email: " + email);
-
-        // 🚀 MASTER ADMIN FIX (Hardcoded)
-        if ("admin@vault.com".equals(email)) {
+        // 1. MASTER ADMIN FIX (Hamesha kaam karega)
+        if ("admin@vault.com".equalsIgnoreCase(email)) {
             return org.springframework.security.core.userdetails.User.builder()
                     .username("admin@vault.com")
                     .password("admin123")
@@ -30,16 +29,18 @@ public class CustomUserDetailsService implements UserDetailsService {
                     .build();
         }
 
-        // 🚀 DATABASE USER CHECK
+        // 2. DATABASE USER CHECK (Railway DB)
         User user = userRepo.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
 
         String userRole = user.getRole();
-        if (userRole == null) userRole = "USER";
-
-        if (!userRole.startsWith("ROLE_")) {
+        if (userRole == null || userRole.isEmpty()) {
+            userRole = "ROLE_USER";
+        } else if (!userRole.startsWith("ROLE_")) {
             userRole = "ROLE_" + userRole.toUpperCase();
         }
+
+        System.out.println("DEBUG: DB User found with role: " + userRole);
 
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),

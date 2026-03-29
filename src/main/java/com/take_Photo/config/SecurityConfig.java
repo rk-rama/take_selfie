@@ -1,5 +1,7 @@
 package com.take_Photo.config;
 
+import com.take_Photo.service.CustomUserDetailsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -11,6 +13,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    @Autowired
+    private CustomUserDetailsService userDetailsService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -24,8 +29,9 @@ public class SecurityConfig {
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        // Agar HTML form mein name='email' hai, toh ye line zaroori hai:
-                        .usernameParameter("email")
+                        .loginProcessingUrl("/login") // Ye line add karo
+                        .usernameParameter("email")    // HTML ka 'name' yahan match hona chahiye
+                        .passwordParameter("password") // HTML ka 'password' name
                         .successHandler((request, response, authentication) -> {
                             var roles = authentication.getAuthorities();
                             for (var role : roles) {
@@ -36,6 +42,7 @@ public class SecurityConfig {
                             }
                             response.sendRedirect("/dashboard");
                         })
+                        .failureUrl("/login?error=true") // Error aane pe yahan bhejega
                         .permitAll()
                 )
                 .logout(logout -> logout.logoutSuccessUrl("/login?logout").permitAll());
