@@ -4,6 +4,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,7 +31,6 @@ public class SecurityConfig {
                         .successHandler((request, response, authentication) -> {
                             var roles = authentication.getAuthorities();
                             for (var role : roles) {
-                                // Important: "ROLE_ADMIN" check hona chahiye
                                 if (role.getAuthority().equals("ROLE_ADMIN")) {
                                     response.sendRedirect("/admin-dash");
                                     return;
@@ -40,6 +43,18 @@ public class SecurityConfig {
                 .logout(logout -> logout.logoutSuccessUrl("/login?logout").permitAll());
 
         return http.build();
+    }
+
+    // --- YE SECTION FIX ADMIN SET KAREGA ---
+    @Bean
+    public UserDetailsService userDetailsService() {
+        // Yahan apna fix Email aur Password daal do
+        UserDetails admin = User.withUsername("admin@vault.com")
+                .password("admin123")
+                .roles("ADMIN") // Spring automatic isse ROLE_ADMIN bana dega
+                .build();
+
+        return new InMemoryUserDetailsManager(admin);
     }
 
     @Bean
