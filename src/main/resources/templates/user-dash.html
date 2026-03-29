@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cyber Vault - Dashboard</title>
+  <style>
+    /* ... (Purana style same rahega) ... */
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Ubuntu', sans-serif; }
+    body { min-height: 100vh; background: radial-gradient(circle, #1a1a2e 0%, #000 100%); color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+    h2 { color: #ff0055; margin-bottom: 20px; letter-spacing: 2px; text-transform: uppercase; }
+    .main-card { background: rgba(255,255,255,0.05); padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); text-align: center; width: 100%; max-width: 600px; box-shadow: 0 0 30px rgba(255, 0, 85, 0.2); }
+    video { width: 100%; border-radius: 10px; border: 2px solid #333; background: #000; margin-bottom: 20px; }
+    .controls { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
+    button { padding: 12px 25px; border-radius: 50px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+    .btn-capture { background: #ff0055; color: white; }
+    .btn-view { background: #00d4ff; color: #000; }
+    .btn-logout { background: transparent; border: 1px solid #444; color: #777; margin-top: 15px; }
+
+    /* --- NEW GALLERY STYLE --- */
+    #gallery-section { margin-top: 40px; width: 100%; max-width: 900px; display: none; animation: fadeIn 0.5s ease-in; }
+    .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
+
+    .thumb { position: relative; border: 2px solid #222; border-radius: 12px; overflow: hidden; height: 180px; background: #111; transition: 0.3s; }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* Hover Overlay for Buttons */
+    .overlay {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.7); display: flex; flex-direction: column;
+        justify-content: center; align-items: center; gap: 10px;
+        opacity: 0; transition: 0.3s;
+    }
+    .thumb:hover .overlay { opacity: 1; }
+
+    .action-btn { padding: 8px 15px; border-radius: 5px; font-size: 0.8rem; text-decoration: none; text-align: center; width: 80%; }
+    .dl-btn { background: #00d4ff; color: black; }
+    .del-btn { background: #ff0055; color: white; }
+  </style>
+</head>
+<body>
+
+<h2>CYBER VAULT <span style="color: #fff;">SYSTEM</span></h2>
+
+<div class="main-card">
+  <video id="webcam" autoplay playsinline></video>
+  <div class="controls">
+    <button class="btn-capture" onclick="takeSelfie()">CAPTURE & UPLOAD</button>
+    <button class="btn-view" onclick="toggleGallery()">VIEW MY PHOTOS</button>
+  </div>
+  <form action="/logout" method="POST"><button type="submit" class="btn-logout">TERMINATE SESSION</button></form>
+</div>
+
+<div id="gallery-section">
+  <div class="gallery-header" style="display:flex; justify-content: space-between; border-bottom:1px solid #333; padding-bottom:10px;">
+    <h3 style="color: #00d4ff;">DECRYPTED CLOUD STORAGE</h3>
+    <button onclick="toggleGallery()" style="background: #333; color: #fff; padding: 5px 15px;">CLOSE [X]</button>
+  </div>
+  <div id="gallery-grid" class="gallery-grid"></div>
+</div>
+
+<script>
+  const video = document.getElementById('webcam');
+  const galleryGrid = document.getElementById('gallery-grid');
+
+  navigator.mediaDevices.getUserMedia({ video: true }).then(s => video.srcObject = s);
+
+  async function takeSelfie() {
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      canvas.toBlob(async (blob) => {
+          const formData = new FormData();
+          formData.append('file', blob, 'vault.jpg');
+          const res = await fetch('/api/user/upload', { method: 'POST', body: formData });
+          if(res.ok) { alert("PHOTO SECURED!"); loadPhotos(); }
+      }, 'image/jpeg');
+  }
+
+  function toggleGallery() {
+      const gs = document.getElementById('gallery-section');
+      gs.style.display = (gs.style.display === "none" || gs.style.display === "") ? "block" : "none";
+      if(gs.style.display === "block") loadPhotos();
+  }
+
+  async function loadPhotos() {
+      const res = await fetch('/api/user/my-photos');
+      const photos = await res.json();
+      galleryGrid.innerHTML = '';
+      photos.forEach(p => {
+          galleryGrid.innerHTML += `
+              <div class="thumb" id="img-container-${p.id}">
+                  <img src="${p.fileUrl}">
+                  <div class="overlay">
+                      <a href="${p.fileUrl}" download class="action-btn dl-btn">DOWNLOAD</a>
+                      <button onclick="deletePhoto(${p.id})" class="action-btn del-btn">DELETE</button>
+                  </div>
+              </div>`;
+      });
+  }
+
+  async function deletePhoto(id) {
+      if(confirm("Permanently Erase this Record?")) {
+          const res = await fetch(`/api/user/delete/${id}`, { method: 'DELETE' });
+          if(res.ok) {
+              document.getElementById(`img-container-${id}`).remove();
+          }
+      }
+  }
+</script>
+</body>
+</html>

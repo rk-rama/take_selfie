@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cyber Vault - Mobile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Ubuntu:wght@300;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Ubuntu', sans-serif; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            min-height: 100vh;
+            background: #000;
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(255, 0, 85, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 20%);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+            overflow-x: hidden;
+        }
+
+        /* Neon Header */
+        h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: #ff0055;
+            margin: 20px 0;
+            font-size: 1.4rem;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255, 0, 85, 0.5);
+            text-align: center;
+        }
+
+        /* Main Glass Card */
+        .main-card {
+            background: rgba(20, 20, 20, 0.8);
+            padding: 20px;
+            border-radius: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+        }
+
+        /* Video System */
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            padding-bottom: 75%; /* 4:3 Aspect Ratio */
+            border-radius: 15px;
+            overflow: hidden;
+            border: 2px solid #222;
+        }
+
+        video {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+            background: #050505;
+        }
+
+        /* Mobile Controls */
+        .controls {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        button {
+            padding: 15px 10px;
+            border-radius: 15px;
+            border: none;
+            font-weight: bold;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-transform: uppercase;
+        }
+
+        .btn-capture {
+            background: #ff0055;
+            color: white;
+            box-shadow: 0 5px 15px rgba(255, 0, 85, 0.3);
+            grid-column: span 2; /* Capture button bada dikhega mobile pe */
+            font-size: 0.9rem;
+        }
+
+        .btn-gallery {
+            background: #1a1a1a;
+            color: #00d4ff;
+            border: 1px solid #00d4ff;
+            grid-column: span 2;
+        }
+
+        button:active { transform: scale(0.95); }
+
+        /* Gallery Label */
+        .vault-label {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 30px;
+            padding: 10px;
+            border-bottom: 1px solid #222;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .vault-label span {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            color: #00d4ff;
+            letter-spacing: 2px;
+        }
+
+        /* --- Responsive Gallery Grid --- */
+        #gallery-preview {
+            margin-top: 15px;
+            width: 100%;
+            max-width: 500px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* Mobile pe 2 column */
+            gap: 10px;
+            padding-bottom: 40px;
+        }
+
+        /* PC View adjustment */
+        @media (min-width: 768px) {
+            #gallery-preview { grid-template-columns: repeat(3, 1fr); }
+            h2 { font-size: 2rem; }
+        }
+
+        .thumb {
+            aspect-ratio: 1 / 1;
+            background: #0a0a0a;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #222;
+            position: relative;
+        }
+
+        .thumb img {
+            width: 100%; height: 100%; object-fit: cover;
+            opacity: 0.8;
+            transition: 0.3s;
+        }
+
+        .thumb:active img { opacity: 1; transform: scale(1.1); }
+
+        /* Logout Button (Floating) */
+        .logout-link {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 0, 85, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-size: 0.7rem;
+            font-family: 'Orbitron', sans-serif;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+        }
+
+    </style>
+</head>
+<body>
+
+<form action="/logout" method="POST" style="display:contents">
+    <button type="submit" class="logout-link">EXIT VAULT</button>
+</form>
+
+<h2>NICE SELFIE</h2>
+
+<div class="main-card">
+    <div class="video-wrapper">
+        <video id="webcam" autoplay playsinline></video>
+    </div>
+
+    <div class="controls">
+        <button class="btn-capture" onclick="takeSelfie()">CLICK PHOTO</button>
+        <button class="btn-gallery" onclick="loadUserPhotos()">VIEW PIC</button>
+    </div>
+</div>
+
+<div class="vault-label">
+    <span>CLOUD_DATABASE</span>
+    <small style="color: #444;">v2.0</small>
+</div>
+
+<div id="gallery-preview">
+</div>
+
+<script>
+    const video = document.getElementById('webcam');
+    const gallery = document.getElementById('gallery-preview');
+
+    // Startup Camera
+    navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" } // Selfie camera priority
+    })
+    .then(stream => { video.srcObject = stream; })
+    .catch(err => alert("Please allow camera access"));
+
+    async function takeSelfie() {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+
+        canvas.toBlob(async (blob) => {
+            const formData = new FormData();
+            formData.append('file', blob, 'vault_img.jpg');
+
+            const response = await fetch('/api/user/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            if(response.ok) {
+                // Visual feedback
+                video.style.filter = "brightness(2) contrast(2)";
+                setTimeout(() => video.style.filter = "none", 150);
+                loadUserPhotos();
+            }
+        }, 'image/jpeg', 0.8); // 80% quality for mobile data saving
+    }
+
+    async function loadUserPhotos() {
+        const response = await fetch('/api/user/my-photos');
+        const photos = await response.json();
+        gallery.innerHTML = '';
+
+        if(photos.length === 0) {
+            gallery.innerHTML = '<p style="color:#333; grid-column:span 2; text-align:center; padding:20px;">VAULT EMPTY</p>';
+            return;
+        }
+
+        photos.forEach(p => {
+            gallery.innerHTML += `<div class="thumb"><img src="${p.fileUrl}"></div>`;
+        });
+    }
+
+    window.onload = loadUserPhotos;
+</script>
+</body>
+</html>

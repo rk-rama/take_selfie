@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Login - Take Photo</title>
+    <style>
+        /* Cyber Theme CSS - Do not remove! */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Ubuntu', sans-serif; }
+        body {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle, #1a1a2e 0%, #000 100%);
+            overflow: hidden;
+            color: white;
+        }
+        @keyframes dropIn {
+            0% { transform: translateY(-100px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        .login-container {
+            width: 380px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 40px;
+            border-radius: 25px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            animation: dropIn 0.8s ease-out;
+        }
+        h2 { color: #ff0055; margin-bottom: 30px; font-size: 2.2rem; letter-spacing: 3px; }
+        .input-box { margin-bottom: 20px; }
+        input {
+            width: 100%;
+            padding: 12px 20px;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid #333;
+            border-radius: 50px;
+            color: #fff;
+            outline: none;
+            transition: 0.4s;
+        }
+        input:focus { border-color: #ff0055; box-shadow: 0 0 15px rgba(255, 0, 85, 0.4); }
+        button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 50px;
+            border: none;
+            background: #ff0055;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover { background: #fff; color: #ff0055; transform: scale(1.05); }
+        .admin-toggle {
+            margin-top: 15px;
+            background: transparent;
+            border: 1px solid #444;
+            color: #777;
+            font-size: 0.8rem;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 20px;
+        }
+        .admin-toggle:hover { border-color: #00d4ff; color: #00d4ff; }
+        .error-msg { color: #ffeb3b; font-size: 0.8rem; margin-bottom: 15px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <h2 id="login-title">USER LOGIN</h2>
+
+    <div id="error-box" class="error-msg">Invalid Email or Password!</div>
+
+    <form action="/login" method="POST">
+        <div class="input-box">
+            <input type="text" name="username" placeholder="Email Address" required>
+        </div>
+        <div class="input-box">
+            <input type="password" name="password" placeholder="Password" required>
+        </div>
+        <div class="input-box">
+            <button type="submit">ENTER SYSTEM</button>
+        </div>
+    </form>
+
+    <div style="margin-top: 15px; color: #777; font-size: 0.9rem;">
+        New here? <a href="/register" style="color: #ff0055; text-decoration: none; font-weight: bold;">Register Now</a>
+    </div>
+
+    <div>
+        <button class="admin-toggle" onclick="toggleAdmin()">ADMIN ACCESS ONLY</button>
+    </div>
+</div>
+
+<script>
+    // Check for error in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('error')) {
+        document.getElementById('error-box').style.display = 'block';
+    }
+
+    function toggleAdmin() {
+        const title = document.getElementById('login-title');
+        const loginBtn = document.querySelector('button[type="submit"]');
+        if (title.innerText === "USER LOGIN") {
+            title.innerText = "ADMIN PORTAL";
+            title.style.color = "#00d4ff";
+            loginBtn.style.background = "#00d4ff";
+        } else {
+            title.innerText = "USER LOGIN";
+            title.style.color = "#ff0055";
+            loginBtn.style.background = "#ff0055";
+        }
+    }
+</script>
+</body>
+</html>

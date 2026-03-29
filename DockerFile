@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: cyber-vault
+    env: static
+    plan: free
+    buildCommand: mvn clean install -DskipTests
+    startCommand: java -jar target/*.jar
+    envVars:
+      - key: JAVA_VERSION
+        value: 22

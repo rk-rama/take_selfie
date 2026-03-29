@@ -1,0 +1,46 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Your Cyber Gallery</title>
+  <style>
+    body { background: #000; color: white; font-family: 'Ubuntu', sans-serif; padding: 40px; }
+    .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; margin-top: 30px; }
+    .photo-card { border: 1px solid #ff0055; border-radius: 15px; overflow: hidden; background: #111; transition: 0.3s; }
+    .photo-card:hover { transform: scale(1.05); box-shadow: 0 0 20px #ff0055; }
+    .photo-card img { width: 100%; height: 200px; object-fit: cover; }
+    .nav-btn { background: #ff0055; color: white; padding: 10px 20px; border-radius: 50px; text-decoration: none; font-weight: bold; }
+  </style>
+</head>
+<body>
+<div style="display: flex; justify-content: space-between; align-items: center;">
+  <h2 style="color: #ff0055;">YOUR SECURE GALLERY</h2>
+  <a href="/dashboard" class="nav-btn">BACK TO CAMERA</a>
+</div>
+
+<div class="gallery-grid" id="gallery">
+  <p>Fetching your memories from the cloud...</p>
+</div>
+
+<script>
+  // JS se photos load karne ka logic (Fetch API)
+  async function loadPhotos() {
+      const response = await fetch('/api/user/my-photos'); // Hum ye API abhi banayenge
+      const photos = await response.json();
+      const gallery = document.getElementById('gallery');
+      gallery.innerHTML = '';
+
+      photos.forEach(p => {
+          gallery.innerHTML += `
+              <div class="photo-card">
+                  <img src="${p.fileUrl}" alt="Selfie">
+                  <p style="padding: 10px; font-size: 0.8rem;">${p.fileName}</p>
+              </div>
+          `;
+      });
+  }
+  loadPhotos();
+</script>
+</body>
+</html>

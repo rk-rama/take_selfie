@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cyber Admin - Control Center</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Ubuntu', sans-serif; }
+    body { background: #000; color: white; padding: 40px; }
+
+    /* ... (Purani Table CSS waisi hi rahegi) ... */
+    h2 { color: #00d4ff; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; text-shadow: 0 0 10px #00d4ff; }
+    .stats { display: flex; gap: 20px; margin-bottom: 30px; }
+    .stat-card { background: #111; padding: 20px; border-radius: 10px; border-left: 5px solid #00d4ff; flex: 1; box-shadow: 0 5px 15px rgba(0,212,255,0.1); }
+    .stat-card h3 { color: #888; font-size: 0.9rem; margin-bottom: 5px; }
+    .stat-card p { font-size: 2rem; font-weight: bold; color: white; }
+
+    table { width: 100%; border-collapse: collapse; background: #111; border: 1px solid #333; }
+    th, td { padding: 15px; text-align: left; border-bottom: 1px solid #222; }
+    th { color: #00d4ff; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; }
+    .user-row:hover { background: #1a1a1a; }
+    .view-btn { background: #ff0055; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; transition: 0.3s; font-size: 0.8rem; }
+    .view-btn:hover { background: #fff; color: #ff0055; transform: scale(1.05); }
+
+    /* --- NEW MODAL (POP-UP) STYLE --- */
+    .modal {
+        display: none; /* Default hide */
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.9); z-index: 1000;
+        overflow-y: auto;
+        backdrop-filter: blur(5px);
+    }
+    .modal-content {
+        background: #111;
+        margin: 5% auto;
+        padding: 20px;
+        width: 80%;
+        max-width: 900px;
+        border-radius: 15px;
+        border: 2px solid #00d4ff;
+        box-shadow: 0 0 30px rgba(0,212,255,0.3);
+        position: relative;
+    }
+    .close-btn {
+        position: absolute; top: 15px; right: 20px;
+        font-size: 2rem; color: #ff0055; cursor: pointer; transition: 0.3s;
+    }
+    .close-btn:hover { color: white; transform: rotate(90deg); }
+
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+    .gallery-item {
+        border: 2px solid #222;
+        border-radius: 8px;
+        overflow: hidden;
+        height: 120px;
+        background: #000;
+    }
+    .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+  </style>
+</head>
+<body>
+
+<div class="admin-container">
+  <h2>ADMIN COMMAND CENTER</h2>
+
+  <div class="stats">
+    <div class="stat-card"><h3>TOTAL USERS</h3><p id="userCount">5</p></div>
+    <div class="stat-card"><h3>SYSTEM STATUS</h3><p style="color: #00ff00;">ONLINE</p></div>
+  </div>
+
+  <table>
+    <thead>
+    <tr>
+      <th>ID</th><th>NAME</th><th>EMAIL</th><th>PASSWORD</th><th>VAULT ACCESS</th>
+    </tr>
+    </thead>
+    <tbody id="userTable">
+    </tbody>
+  </table>
+</div>
+
+<div id="vaultModal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn" onclick="closeModal()">&times;</span>
+    <h3 id="modalTitle" style="color: #00d4ff; letter-spacing: 1px;">User Vault</h3>
+    <p id="modalSubTitle" style="color: #666; font-size: 0.8rem; margin-top:5px;"></p>
+    <hr style="border-color: #333; margin-top: 15px;">
+
+    <div id="galleryGrid" class="gallery-grid">
+    </div>
+  </div>
+</div>
+
+<script>
+  const modal = document.getElementById('vaultModal');
+  const modalGrid = document.getElementById('galleryGrid');
+
+  // 1. Load All Users (Table data)
+  async function loadAllUsers() {
+      const response = await fetch('/api/admin/users');
+      const users = await response.json();
+      document.getElementById('userCount').innerText = users.length;
+      const tbody = document.getElementById('userTable');
+      tbody.innerHTML = '';
+
+      users.forEach(u => {
+          tbody.innerHTML += `
+              <tr class="user-row">
+                  <td>${u.id}</td>
+                  <td>${u.username}</td>
+                  <td>${u.email}</td>
+                  <td style="color: #444;">${u.password}</td> <td><button class="view-btn" onclick="viewUserPhotos(${u.id}, '${u.username}', '${u.email}')">VIEW PHOTOS</button></td>
+              </tr>`;
+      });
+  }
+
+  // 2. Open Modal & Load Specific User Photos <-- NAYA CONNECTION logic
+  async function viewUserPhotos(userId, userName, userEmail) {
+      // Modal set karo
+      document.getElementById('modalTitle').innerText = userName.toUpperCase() + "'S SECURED VAULT";
+      document.getElementById('modalSubTitle').innerText = "Accessing records for: " + userEmail;
+      modalGrid.innerHTML = '<p style="color: #444;">Accessing secure layer...</p>'; // Loading state
+
+      // Modal show karo
+      modal.style.display = "block";
+
+      try {
+          // Nayi Backend API call karo <-- Backend se connect hua!
+          const response = await fetch('/api/admin/user-photos/' + userId);
+          const photos = await response.json();
+          modalGrid.innerHTML = ''; // Clear loading message
+
+          if(photos.length === 0) {
+              modalGrid.innerHTML = '<p style="color: #ff0055; grid-column: 1/-1;">No records found in this vault.</p>';
+              return;
+          }
+
+          // Photos load karo
+          photos.forEach(p => {
+              modalGrid.innerHTML += `
+                  <div class="gallery-item">
+                      <img src="${p.fileUrl}" alt="Vault Image">
+                  </div>`;
+          });
+      } catch (error) {
+          modalGrid.innerHTML = '<p style="color: red; grid-column: 1/-1;">ERROR: Could not establish uplink.</p>';
+      }
+  }
+
+  // 3. Close Modal
+  function closeModal() {
+      modal.style.display = "none";
+  }
+
+  // Modal ke bahar click karne pe close ho jaye
+  window.onclick = function(event) {
+      if (event.target == modal) {
+          closeModal();
+      }
+  }
+
+  // Start load
+  window.onload = loadAllUsers;
+</script>
+</body>
+</html>
